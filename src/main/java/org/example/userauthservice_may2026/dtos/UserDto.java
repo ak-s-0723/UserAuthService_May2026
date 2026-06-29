@@ -1,0 +1,14 @@
+package org.example.userauthservice_may2026.dtos;
+
+import jakarta.persistence.ManyToMany;
+import org.example.userauthservice_may2026.models.Role;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class UserDto {
+    private Long id;
+    private String name;
+    private String email;
+    private List<String> roles = new ArrayList<>();
+}
