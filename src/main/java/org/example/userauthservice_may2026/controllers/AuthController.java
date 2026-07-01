@@ -1,8 +1,10 @@
 package org.example.userauthservice_may2026.controllers;
 
+import org.antlr.v4.runtime.misc.Pair;
 import org.example.userauthservice_may2026.dtos.LoginRequestDto;
 import org.example.userauthservice_may2026.dtos.SignupRequestDto;
 import org.example.userauthservice_may2026.dtos.UserDto;
+import org.example.userauthservice_may2026.dtos.ValidateTokenRequestDto;
 import org.example.userauthservice_may2026.exceptions.PasswordMismatchException;
 import org.example.userauthservice_may2026.exceptions.UserAlreadyExistsException;
 import org.example.userauthservice_may2026.exceptions.UserNotSignedUpException;
@@ -10,8 +12,11 @@ import org.example.userauthservice_may2026.models.Role;
 import org.example.userauthservice_may2026.models.User;
 import org.example.userauthservice_may2026.services.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -41,11 +46,22 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<UserDto> login(@RequestBody LoginRequestDto loginRequestDto) {
         try {
-            User user = authService.login(loginRequestDto.getEmail(), loginRequestDto.getPassword());
-            return new ResponseEntity<>(from(user),HttpStatus.OK);
+            Pair<User,String> response = authService.login(loginRequestDto.getEmail(), loginRequestDto.getPassword());
+            User user = response.a;
+            String token = response.b;
+            MultiValueMap<String,String> headers = new LinkedMultiValueMap<>();
+            headers.add(HttpHeaders.SET_COOKIE, token);
+            headers.add("On special Request of","vashisht");
+            return new ResponseEntity<>(from(user),headers,HttpStatus.OK);
         } catch (Exception exception) {
             throw exception;
         }
+    }
+
+
+    @PostMapping("/validateToken")
+    public Boolean validateToken(@RequestBody ValidateTokenRequestDto validateTokenRequestDto) {
+
     }
 
     public UserDto from(User user) {
