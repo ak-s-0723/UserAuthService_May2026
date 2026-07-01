@@ -23,4 +23,10 @@ public class BaseModel {
     private Date lastUpdatedOn;
 
     private State state;
+
+    public BaseModel() {
+        this.createdOn = new Date();
+        this.lastUpdatedOn = new Date();
+        this.state = State.ACTIVE;
+    }
 }
