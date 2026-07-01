@@ -9,6 +9,7 @@ import org.example.userauthservice_may2026.models.User;
 import org.example.userauthservice_may2026.repos.RoleRepo;
 import org.example.userauthservice_may2026.repos.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,6 +25,9 @@ public class AuthService {
     @Autowired
     private RoleRepo roleRepo;
 
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
     public User signup(String name,String email,String password) {
         Optional<User> userOptional = userRepo.findByEmail(email);
         if (userOptional.isPresent()) {
@@ -33,7 +37,8 @@ public class AuthService {
         User user = new User();
         user.setEmail(email);
         user.setName(name);
-        user.setPassword(password); //hash this password
+       // user.setPassword(password); //hash this password
+        user.setPassword(bCryptPasswordEncoder.encode(password));
 
         Role role = null;
         Optional<Role> roleOptional = roleRepo.findByValue("NON_ADMIN");
@@ -58,7 +63,8 @@ public class AuthService {
         }
 
         User user = userOptional.get();
-        if (!user.getPassword().equals(password)) {
+      //  if (!user.getPassword().equals(password)) {
+        if (!bCryptPasswordEncoder.matches(password,user.getPassword())) {
            throw new PasswordMismatchException("Passwords don't match");
         }
 
@@ -68,3 +74,12 @@ public class AuthService {
     }
 
 }
+
+//signup
+//pass = "anurag"
+//bcrypt.encode("anurag") -> "AKAKAKA"
+//
+//login
+//pass  = "anurag"
+//bcrypt.encode("anurag") -> "BABABABA"
+
