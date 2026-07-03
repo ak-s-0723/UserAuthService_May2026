@@ -61,7 +61,7 @@ public class AuthController {
 
     @PostMapping("/validateToken")
     public Boolean validateToken(@RequestBody ValidateTokenRequestDto validateTokenRequestDto) {
-
+        return authService.validateToken(validateTokenRequestDto.getToken());
     }
 
     public UserDto from(User user) {

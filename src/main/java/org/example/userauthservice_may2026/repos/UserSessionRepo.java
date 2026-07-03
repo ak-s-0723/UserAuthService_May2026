@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface UserSessionRepo extends JpaRepository<UserSession,Long> {
     Optional<UserSession> findByToken(String token);
+
+    void deleteById(Long id);
 }
