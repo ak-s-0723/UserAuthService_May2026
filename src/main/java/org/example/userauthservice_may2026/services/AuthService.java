@@ -1,10 +1,14 @@
 package org.example.userauthservice_may2026.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.MacAlgorithm;
 import org.antlr.v4.runtime.misc.Pair;
+import org.example.userauthservice_may2026.clients.KafkaProducerClient;
+import org.example.userauthservice_may2026.dtos.EmailDto;
 import org.example.userauthservice_may2026.exceptions.PasswordMismatchException;
 import org.example.userauthservice_may2026.exceptions.UserAlreadyExistsException;
 import org.example.userauthservice_may2026.exceptions.UserNotSignedUpException;
@@ -40,6 +44,12 @@ public class AuthService {
     @Autowired
     private SecretKey secretKey;
 
+    @Autowired
+    private KafkaProducerClient kafkaProducerClient;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     public User signup(String name,String email,String password) {
         Optional<User> userOptional = userRepo.findByEmail(email);
         if (userOptional.isPresent()) {
@@ -65,7 +75,25 @@ public class AuthService {
         List<Role> roles = new ArrayList<>();
         roles.add(role);
         user.setRoles(roles);
-        return userRepo.save(user);
+        User savedUser = userRepo.save(user);
+
+        ////////
+        // Put a message into Kafka at this point
+        EmailDto emailDto = new EmailDto();
+        emailDto.setTo(email);
+        emailDto.setFrom("anuragonhiring@gmail.com");
+        emailDto.setSubject("Welcome to Scaler");
+        emailDto.setBody("Have a good learning experience");
+        try {
+            String message = objectMapper.writeValueAsString(emailDto);
+            kafkaProducerClient.sendMessage("signup", message);
+        }catch (JsonProcessingException exception) {
+            throw new RuntimeException("Something went bad");
+        }
+
+        ///////
+
+        return savedUser;
     }
 
     public Pair<User,String> login(String email, String password) {
